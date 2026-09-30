@@ -16,8 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const deploymentsTbody = document.getElementById('deployments-tbody');
   const incidentsTbody = document.getElementById('incidents-tbody');
 
-  const healthPaymentStatus = document.getElementById('health-payment-status');
-  const healthErrorRate = document.getElementById('health-error-rate');
+  const healthFocusLabel = document.getElementById('health-focus-label');
+  const healthFocusStatus = document.getElementById('health-focus-status');
+  const healthMetricLabel = document.getElementById('health-metric-label');
+  const healthMetricValue = document.getElementById('health-metric-value');
   const healthRecovered = document.getElementById('health-recovered');
   const healthScenario = document.getElementById('health-scenario');
 
@@ -174,6 +176,8 @@ document.addEventListener('DOMContentLoaded', () => {
   async function fetchHealth() {
     const res = await fetch('/health');
     const health = await res.json();
+    const services = health.services || {};
+    const metrics = health.metrics || {};
 
     const scenarioNames = {
       PAYMENT_DEPLOYMENT_REGRESSION: 'Payment Deployment',
@@ -182,11 +186,50 @@ document.addEventListener('DOMContentLoaded', () => {
       DATABASE_CONNECTION_EXHAUSTION: 'Database Connection Failure'
     };
 
-    healthPaymentStatus.textContent = health.paymentService || (health.services && health.services['Payment Service']) || '—';
-    healthPaymentStatus.className =
-      healthPaymentStatus.textContent === 'healthy' ? 'health-val text-ok' : 'health-val text-bad';
+    const focusByScenario = {
+      PAYMENT_DEPLOYMENT_REGRESSION: {
+        label: 'Payment Status',
+        status: services['Payment Service'] || health.paymentService || '—',
+        metricLabel: 'Payment Error Rate',
+        metricValue: `${metrics.payment?.errorRate ?? health.errorRate ?? '—'}%`
+      },
+      ORDERS_REDIS_FAILURE: {
+        label: 'Redis Status',
+        status: services.Redis || metrics.redis?.status || '—',
+        metricLabel: 'Orders Latency',
+        metricValue: `${metrics.orders?.latency ?? '—'} ms`
+      },
+      USERS_AUTH_DEPLOYMENT: {
+        label: 'Users Status',
+        status: services['Users Service'] || metrics.users?.status || '—',
+        metricLabel: 'Auth Error Rate',
+        metricValue: `${metrics.users?.authErrorRate ?? '—'}%`
+      },
+      DATABASE_CONNECTION_EXHAUSTION: {
+        label: 'Database Status',
+        status: services.Database || metrics.database?.status || '—',
+        metricLabel: 'DB Pool',
+        metricValue: metrics.database
+          ? `${metrics.database.connectionsUsed}/${metrics.database.connectionsMax}`
+          : '—'
+      }
+    };
 
-    healthErrorRate.textContent = `${health.errorRate ?? health.metrics?.payment?.errorRate ?? '—'}%`;
+    const focus = focusByScenario[health.activeScenario] || {
+      label: 'System Status',
+      status: health.recovered ? 'healthy' : 'healthy',
+      metricLabel: 'Payment Error Rate',
+      metricValue: `${metrics.payment?.errorRate ?? health.errorRate ?? 1}%`
+    };
+
+    healthFocusLabel.textContent = focus.label;
+    healthFocusStatus.textContent = focus.status;
+    healthFocusStatus.className =
+      focus.status === 'healthy' ? 'health-val text-ok' : 'health-val text-bad';
+
+    healthMetricLabel.textContent = focus.metricLabel;
+    healthMetricValue.textContent = focus.metricValue;
+
     healthRecovered.textContent = health.recovered ? 'Yes' : 'No';
     healthRecovered.className = health.recovered ? 'health-val text-ok' : 'health-val text-muted';
     healthScenario.textContent = health.activeScenario

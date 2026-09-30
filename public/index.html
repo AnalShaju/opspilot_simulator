@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpsPilot Production Simulator</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
   <div class="layout">
@@ -144,12 +144,12 @@
               <span id="health-scenario" class="health-val">None</span>
             </div>
             <div class="health-item">
-              <span class="health-label">Payment Status</span>
-              <span id="health-payment-status" class="health-val">healthy</span>
+              <span class="health-label" id="health-focus-label">Affected Service</span>
+              <span id="health-focus-status" class="health-val">healthy</span>
             </div>
             <div class="health-item">
-              <span class="health-label">Payment Error Rate</span>
-              <span id="health-error-rate" class="health-val">1%</span>
+              <span class="health-label" id="health-metric-label">Key Metric</span>
+              <span id="health-metric-value" class="health-val">—</span>
             </div>
           </div>
         </div>
@@ -239,6 +239,6 @@
     </main>
   </div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>

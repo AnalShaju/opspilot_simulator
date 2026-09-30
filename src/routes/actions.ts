@@ -3,7 +3,7 @@ import { state } from '../state';
 
 const router = Router();
 
-// POST /actions/rollback
+// POST /actions/rollback — body: { version, service? }
 router.post('/rollback', (req: Request, res: Response) => {
   const { version, service } = req.body || {};
 
