@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpsPilot Production Simulator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark">PS</div>
+        <div>
+          <div class="brand-name">Production Simulator</div>
+          <div class="brand-sub">Developer Console</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-view="dashboard">Dashboard</button>
+        <button class="nav-item" data-view="services">Services</button>
+        <button class="nav-item" data-view="logs">Logs</button>
+        <button class="nav-item" data-view="deployments">Deployments</button>
+        <button class="nav-item" data-view="incidents">Incidents</button>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="api-hint">API :3001</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="page-title">Dashboard</h1>
+          <p class="page-sub">Fake production environment for OpsPilot</p>
+        </div>
+        <div id="overall-status-badge" class="badge badge-healthy">
+          <span class="status-dot"></span>
+          <span id="overall-status-text">System Healthy</span>
+        </div>
+      </header>
+
+      <div id="toast" class="toast hidden"></div>
+
+      <!-- Dashboard -->
+      <section id="view-dashboard" class="view active">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Services Right Now</h2>
+            <span class="endpoint-tag">GET /services</span>
+          </div>
+          <div id="dashboard-services" class="status-list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Metrics Right Now</h2>
+            <span class="endpoint-tag">GET /metrics</span>
+          </div>
+          <div class="metrics-row" id="metrics-row">
+            <div class="metric">
+              <span class="metric-label">Payment Error Rate</span>
+              <span id="metric-error-rate" class="metric-value">1%</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Payment Success Rate</span>
+              <span id="metric-success-rate" class="metric-value">99%</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Payment Latency</span>
+              <span id="metric-latency" class="metric-value">180 ms</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Orders Latency</span>
+              <span id="metric-orders-latency" class="metric-value">180 ms</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Auth Error Rate</span>
+              <span id="metric-auth-error" class="metric-value">1%</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">DB Pool</span>
+              <span id="metric-db-pool" class="metric-value">22/100</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2>1. Start a Failure</h2>
+            <span class="endpoint-tag">POST /simulate/:scenarioId</span>
+          </div>
+          <p class="help-text">Click one button to create a fake production incident.</p>
+          <div class="button-group">
+            <button class="btn btn-danger btn-scenario" data-scenario="PAYMENT_DEPLOYMENT_REGRESSION">1. Payment Deployment</button>
+            <button class="btn btn-danger btn-scenario" data-scenario="ORDERS_REDIS_FAILURE">2. Orders Redis Failure</button>
+            <button class="btn btn-danger btn-scenario" data-scenario="USERS_AUTH_DEPLOYMENT">3. Users Auth Failure</button>
+            <button class="btn btn-danger btn-scenario" data-scenario="DATABASE_CONNECTION_EXHAUSTION">4. Database Connection Failure</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2>2. Fix the Failure</h2>
+          </div>
+          <p class="help-text">Use the matching green button for the failure you started.</p>
+          <div class="fix-grid">
+            <div class="fix-card">
+              <span class="fix-for">For: Payment Deployment</span>
+              <button id="btn-rollback-payment" class="btn btn-success">Rollback Payment v1.8.4</button>
+            </div>
+            <div class="fix-card">
+              <span class="fix-for">For: Users Auth Failure</span>
+              <button id="btn-rollback-users" class="btn btn-success">Rollback Users v2.3.0</button>
+            </div>
+            <div class="fix-card">
+              <span class="fix-for">For: Orders Redis Failure</span>
+              <button id="btn-restart-redis" class="btn btn-success">Restart Redis</button>
+            </div>
+            <div class="fix-card">
+              <span class="fix-for">For: Database Connection Failure</span>
+              <button id="btn-recover-db" class="btn btn-success">Recover Database</button>
+            </div>
+          </div>
+          <div class="button-group util-row">
+            <button id="btn-reset" class="btn btn-secondary">Reset State</button>
+            <button id="btn-refresh" class="btn btn-outline">Refresh</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2>3. Check Recovery</h2>
+            <span class="endpoint-tag">GET /health</span>
+          </div>
+          <p class="help-text">After a fix, Recovered should become Yes.</p>
+          <div class="health-grid">
+            <div class="health-item">
+              <span class="health-label">Recovered?</span>
+              <span id="health-recovered" class="health-val">No</span>
+            </div>
+            <div class="health-item">
+              <span class="health-label">Active Failure</span>
+              <span id="health-scenario" class="health-val">None</span>
+            </div>
+            <div class="health-item">
+              <span class="health-label">Payment Status</span>
+              <span id="health-payment-status" class="health-val">healthy</span>
+            </div>
+            <div class="health-item">
+              <span class="health-label">Payment Error Rate</span>
+              <span id="health-error-rate" class="health-val">1%</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Services -->
+      <section id="view-services" class="view">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Services</h2>
+            <span class="endpoint-tag">GET /services</span>
+          </div>
+          <div id="services-table-wrap" class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Status</th>
+                  <th>Version</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody id="services-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Logs -->
+      <section id="view-logs" class="view">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Application Logs</h2>
+            <span class="endpoint-tag">GET /logs</span>
+          </div>
+          <div id="console-logs" class="console-body"></div>
+        </div>
+      </section>
+
+      <!-- Deployments -->
+      <section id="view-deployments" class="view">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Deployments</h2>
+            <span class="endpoint-tag">GET /deployments</span>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Version</th>
+                  <th>Service</th>
+                  <th>Deployed At</th>
+                  <th>Status</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody id="deployments-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Incidents -->
+      <section id="view-incidents" class="view">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>Incidents</h2>
+            <span class="endpoint-tag">GET /incidents</span>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Service</th>
+                  <th>Title / Cause</th>
+                  <th>Severity / Action</th>
+                  <th>Status / Result</th>
+                </tr>
+              </thead>
+              <tbody id="incidents-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
