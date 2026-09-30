@@ -25,12 +25,15 @@ body {
   color: var(--text);
   font-size: 14px;
   line-height: 1.5;
+  overflow: hidden;
+  height: 100vh;
 }
 
 .layout {
   display: grid;
   grid-template-columns: 220px 1fr;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -39,6 +42,10 @@ body {
   display: flex;
   flex-direction: column;
   padding: 20px 14px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
 }
 
 .sidebar-brand {
@@ -85,7 +92,14 @@ body {
 .sidebar-footer { padding: 12px 8px 0; border-top: 1px solid rgba(255,255,255,0.08); }
 .api-hint { font-family: var(--mono); font-size: 11px; color: #8b95a5; }
 
-.main { padding: 24px 28px; display: flex; flex-direction: column; gap: 18px; }
+.main {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  height: 100vh;
+  overflow-y: auto;
+}
 
 .topbar {
   display: flex;
@@ -331,9 +345,18 @@ code { font-family: var(--mono); font-size: 12px; }
 .toast-error { background: var(--failing-bg); color: var(--failing); border-color: #fecaca; }
 
 @media (max-width: 900px) {
-  .layout { grid-template-columns: 1fr; }
-  .sidebar { flex-direction: row; flex-wrap: wrap; gap: 8px; align-items: center; }
+  body { overflow: auto; height: auto; }
+  .layout { grid-template-columns: 1fr; height: auto; overflow: visible; }
+  .sidebar {
+    height: auto;
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
   .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
   .sidebar-footer { display: none; }
+  .main { height: auto; overflow: visible; }
   .metrics-row, .health-grid { grid-template-columns: 1fr 1fr; }
 }
