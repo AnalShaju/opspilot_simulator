@@ -3,8 +3,7 @@ import { state } from '../state';
 
 const router = Router();
 
-// GET /metrics - Return current service metrics
-router.get('/', (req: Request, res: Response) => {
+router.get('/', (_req: Request, res: Response) => {
   res.json(state.metrics);
 });
 

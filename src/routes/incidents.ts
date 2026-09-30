@@ -3,8 +3,7 @@ import { state } from '../state';
 
 const router = Router();
 
-// GET /incidents - Return historical incident reports
-router.get('/', (req: Request, res: Response) => {
+router.get('/', (_req: Request, res: Response) => {
   res.json({
     incidents: state.incidents
   });
